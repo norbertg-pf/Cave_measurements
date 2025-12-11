@@ -475,6 +475,7 @@ class DAQControlApp(QWidget):
             thermocouple_ai2 = thermocouple_k.TypeKThermocouple(cjc_temp_C=25.0)
         if self.thermocouple_ai2_checkbox.isChecked():
             thermocouple_ai4 = thermocouple_k.TypeKThermocouple(cjc_temp_C=25.0)
+        
         try:
             self.sample_nr = 0
             read_rate = float(self.read_rate_input.text())
