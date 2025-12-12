@@ -472,9 +472,9 @@ class DAQControlApp(QWidget):
 
     def read_voltages(self):
         if self.thermocouple_ai2_checkbox.isChecked():
-            thermocouple_ai2 = thermocouple_k.TypeKThermocouple(cjc_temp_C=25.0)
+            thermocouple_ai2 = thermocouple_k.TypeKThermocouple(cjc_temp_C=23.0)
         if self.thermocouple_ai2_checkbox.isChecked():
-            thermocouple_ai4 = thermocouple_k.TypeKThermocouple(cjc_temp_C=25.0)
+            thermocouple_ai4 = thermocouple_k.TypeKThermocouple(cjc_temp_C=23.0)
         
         try:
             self.sample_nr = 0
@@ -529,6 +529,10 @@ class DAQControlApp(QWidget):
                             number_of_samples_per_channel=samples_per_read,
                             timeout=0.1
                         )
+                        if self.thermocouple_ai2_checkbox.isChecked():
+                            data[:2,:] = thermocouple_ai2.mV_to_tC(data[:2,:]*1000)
+                        if self.thermocouple_ai4_checkbox.isChecked():
+                            data[:4,:] = thermocouple_ai4.mV_to_tC(data[:4,:]*1000)
                         if self.offset_calibrated:
                             data = data - self.ai_offsets
                     except Exception as e:
