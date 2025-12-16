@@ -144,10 +144,11 @@ class TypeKThermocouple:
 # Optional module test
 # ===========================================================
 if __name__ == "__main__":
-    tc = TypeKThermocouple(cjc_temp_C=25.0)
+    tc = TypeKThermocouple(cjc_temp_C=23.0)
     print("Self-test:")
     print("CJC =", tc.cjc_temp_C, "°C")
-    emf = tc.tC_to_mV(100)
+    emf = tc.tC_to_mV( -0.4266739031870326 )
+    emf = -0.4266739031870326
     print("100°C →", emf, "mV →", tc.mV_to_tC(emf), "°C")
 
     print("\nMeasured 2 mV, CJC=25°C →", tc.mV_to_tC(2.0))

@@ -124,7 +124,7 @@ class DAQControlApp(QWidget):
         controls_layout.addWidget(self.averaged_filename_input, 4, 1)
         controls_layout.addWidget(choose_folder_btn, 5, 0, 1, 2)
         controls_layout.addWidget(QLabel("Keithley DMM IP"), 6, 0)
-        self.Keithley_DMM_IP = QLineEdit("169.254.254.52")
+        self.Keithley_DMM_IP = QLineEdit("169.254.169.37")
         controls_layout.addWidget(self.Keithley_DMM_IP, 6, 1)
         controls_layout.addWidget(self.thermocouple_ai2_checkbox, 7, 0)
         controls_layout.addWidget(self.thermocouple_ai4_checkbox, 7, 1)
@@ -135,7 +135,7 @@ class DAQControlApp(QWidget):
         controls_layout.addWidget(self.calibrate_btn, 12, 0, 1, 2)
         
         # Set default folder here
-        self.output_folder = r"C:\Users\PF-test-stand\Documents\Development\Measurements\test"
+        self.output_folder = r"C:\Users\PF-test-stand\Documents\Development\Measurements\Heater_measurements\data"
         Path(self.output_folder).mkdir(parents=True, exist_ok=True)
         self.folder_display.setText(f"Output Folder: {self.output_folder if len(self.output_folder)<40 else self.output_folder[-40:]}")
 
@@ -389,6 +389,8 @@ class DAQControlApp(QWidget):
             print(f"[ERROR] Failed to zero AO0: {e}")
 
     def start_read(self):
+        self.calibrate_offsets()
+        
         if self.DMMread_thread and self.DMMread_thread.is_alive():
             return   
         if self.read_thread and self.read_thread.is_alive():
@@ -473,7 +475,7 @@ class DAQControlApp(QWidget):
     def read_voltages(self):
         if self.thermocouple_ai2_checkbox.isChecked():
             thermocouple_ai2 = thermocouple_k.TypeKThermocouple(cjc_temp_C=23.0)
-        if self.thermocouple_ai2_checkbox.isChecked():
+        if self.thermocouple_ai4_checkbox.isChecked():
             thermocouple_ai4 = thermocouple_k.TypeKThermocouple(cjc_temp_C=23.0)
         
         try:
@@ -529,12 +531,13 @@ class DAQControlApp(QWidget):
                             number_of_samples_per_channel=samples_per_read,
                             timeout=0.1
                         )
-                        if self.thermocouple_ai2_checkbox.isChecked():
-                            data[:2,:] = thermocouple_ai2.mV_to_tC(data[:2,:]*1000)
-                        if self.thermocouple_ai4_checkbox.isChecked():
-                            data[:4,:] = thermocouple_ai4.mV_to_tC(data[:4,:]*1000)
                         if self.offset_calibrated:
                             data = data - self.ai_offsets
+
+                        if self.thermocouple_ai2_checkbox.isChecked():
+                            data[2,:] = thermocouple_ai2.mV_to_tC(data[2,:]*1000 )
+                        if self.thermocouple_ai4_checkbox.isChecked():
+                            data[4,:] = thermocouple_ai4.mV_to_tC(data[4,:]*1000)
                     except Exception as e:
                         print(f"[ERROR] DAQ read failed: {e}")
                         continue
@@ -565,7 +568,7 @@ class DAQControlApp(QWidget):
                         print(f"[WARNING] Threshold exceeded on |AI2|: {median_val:.6f} V > {threshold} V")
                         try:
                             # print(f"Current: {np.max(data[1, :]/8.5*4250)} A")
-                            print(f"Current: {np.max(data[1, :]*200)} A")
+                            print(f"Current: {np.max(data[1, :]*500)} A")
                         except Exception:
                             pass
 
@@ -629,7 +632,7 @@ class DAQControlApp(QWidget):
 
                     ai0_val = averaged_data_tmp[0, 0] * 200  # Current = volt*200
                     # diff1 = averaged_data_tmp[1, 0] / 8.5 * 4250   # scaled current
-                    diff1 = averaged_data_tmp[1, 0] * 200   # scaled current
+                    diff1 = averaged_data_tmp[1, 0] * 500   # scaled current
                     diff2 = averaged_data_tmp[2, 0]
                     diff3 = averaged_data_tmp[3, 0]
                     diff4 = averaged_data_tmp[4, 0]
@@ -664,7 +667,7 @@ class DAQControlApp(QWidget):
                         writer.write_segment([ChannelObject("Group", "Target current [A]", ch_data * 200)])
                     if i == 1:
                         # writer.write_segment([ChannelObject("Group", "Measured current [A]", ch_data / 8.5 * 4250)])
-                        writer.write_segment([ChannelObject("Group", "Measured current [A]", ch_data * 200)])
+                        writer.write_segment([ChannelObject("Group", "Measured current [A]", ch_data * 500)])
                 if hasattr(self, "target_current_log"):
                     writer.write_segment([ChannelObject("Group", "Target_Current", np.array(self.target_current_log))])
                 if self.threshold_triggered:
