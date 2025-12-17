@@ -36,9 +36,9 @@ WRITE_CHANNEL = "Dev2/ao0"
 DO_CHANNEL = "Dev2/port0/line0:1"
 PROT_CHANNEL = "Dev2/ai1"
 read_channels_factory = {
-    'Terminals': ["Dev2/ai0", "Dev2/ai1", "Dev2/ai2", "Dev2/ai4", "Dev2/ai5", "Dev2/ai6"],
-    'Ranges': [(-10,10), (-10,10), (-0.2,0.2), (-0.2,0.2), (-0.2,0.2), (-5,5)],
-    'Config': [TerminalConfiguration.RSE, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF],
+    'Terminals': ["Dev2/ai0", "Dev2/ai1", "Dev2/ai2", "Dev2/ai3", "Dev2/ai4", "Dev2/ai5"],
+    'Ranges': [(-10,10), (-10,10), (-0.2,0.2), (-0.2,0.2), (-10,10), (-10,10)],
+    'Config': [TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF],
 }
 READ_CHANNELS = [{'Terminal': read_channels_factory['Terminals'][i],
                   'Range': read_channels_factory['Ranges'][i],
@@ -102,6 +102,8 @@ class DAQControlApp(QWidget):
         self.simulate_checkbox = QCheckBox("Simulate Mode")
         self.thermocouple_ai2_checkbox = QCheckBox("Thermocouple on ai2")
         self.thermocouple_ai4_checkbox = QCheckBox("Thermocouple on ai4")
+        self.thermocouple_ai2_checkbox.setChecked(True)
+        self.thermocouple_ai4_checkbox.setChecked(True)
         self.write_active_label = QLabel("Write Active")
         self.write_active_label.setStyleSheet("color: grey; font-weight: bold;")
         self.shutdown_label = QLabel("Status: OK")
@@ -473,10 +475,8 @@ class DAQControlApp(QWidget):
             return np.array(output)
 
     def read_voltages(self):
-        if self.thermocouple_ai2_checkbox.isChecked():
-            thermocouple_ai2 = thermocouple_k.TypeKThermocouple(cjc_temp_C=23.0)
-        if self.thermocouple_ai4_checkbox.isChecked():
-            thermocouple_ai4 = thermocouple_k.TypeKThermocouple(cjc_temp_C=23.0)
+        thermocouple_ai2 = thermocouple_k.TypeKThermocouple(cjc_temp_C=23.0)
+        thermocouple_ai4 = thermocouple_k.TypeKThermocouple(cjc_temp_C=23.0)
         
         try:
             self.sample_nr = 0
@@ -537,7 +537,7 @@ class DAQControlApp(QWidget):
                         if self.thermocouple_ai2_checkbox.isChecked():
                             data[2,:] = thermocouple_ai2.mV_to_tC(data[2,:]*1000 )
                         if self.thermocouple_ai4_checkbox.isChecked():
-                            data[4,:] = thermocouple_ai4.mV_to_tC(data[4,:]*1000)
+                            data[3,:] = thermocouple_ai4.mV_to_tC(data[3,:]*1000)
                     except Exception as e:
                         print(f"[ERROR] DAQ read failed: {e}")
                         continue
