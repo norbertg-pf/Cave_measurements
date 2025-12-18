@@ -37,8 +37,8 @@ DO_CHANNEL = "Dev2/port0/line0:1"
 PROT_CHANNEL = "Dev2/ai1"
 read_channels_factory = {
     'Terminals': ["Dev2/ai0", "Dev2/ai1", "Dev2/ai2", "Dev2/ai3", "Dev2/ai4", "Dev2/ai5"],
-    'Ranges': [(-10,10), (-10,10), (-0.2,0.2), (-0.2,0.2), (-10,10), (-10,10)],
-    'Config': [TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF],
+    'Ranges': [(-10,10), (-10,10), (-0.2,0.2), (-0.2,0.2), (-0.2,0.2), (-10,10)],
+    'Config': [TerminalConfiguration.RSE, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF],
 }
 READ_CHANNELS = [{'Terminal': read_channels_factory['Terminals'][i],
                   'Range': read_channels_factory['Ranges'][i],
@@ -101,8 +101,10 @@ class DAQControlApp(QWidget):
         self.averaged_filename_input = QLineEdit("test")
         self.simulate_checkbox = QCheckBox("Simulate Mode")
         self.thermocouple_ai2_checkbox = QCheckBox("Thermocouple on ai2")
+        self.thermocouple_ai3_checkbox = QCheckBox("Thermocouple on ai3")
         self.thermocouple_ai4_checkbox = QCheckBox("Thermocouple on ai4")
         self.thermocouple_ai2_checkbox.setChecked(True)
+        self.thermocouple_ai3_checkbox.setChecked(True)
         self.thermocouple_ai4_checkbox.setChecked(True)
         self.write_active_label = QLabel("Write Active")
         self.write_active_label.setStyleSheet("color: grey; font-weight: bold;")
@@ -129,12 +131,13 @@ class DAQControlApp(QWidget):
         self.Keithley_DMM_IP = QLineEdit("169.254.169.37")
         controls_layout.addWidget(self.Keithley_DMM_IP, 6, 1)
         controls_layout.addWidget(self.thermocouple_ai2_checkbox, 7, 0)
-        controls_layout.addWidget(self.thermocouple_ai4_checkbox, 7, 1)
-        controls_layout.addWidget(self.folder_display, 8, 0, 1, 2)
-        controls_layout.addWidget(self.write_active_label, 9, 0, 1, 2)
-        controls_layout.addWidget(self.simulate_checkbox, 10, 0, 1, 2)
-        controls_layout.addWidget(self.shutdown_label, 11, 0, 1, 2)
-        controls_layout.addWidget(self.calibrate_btn, 12, 0, 1, 2)
+        controls_layout.addWidget(self.thermocouple_ai3_checkbox, 7, 1)
+        controls_layout.addWidget(self.thermocouple_ai4_checkbox, 8, 0)
+        controls_layout.addWidget(self.folder_display, 9, 0, 1, 2)
+        controls_layout.addWidget(self.write_active_label, 10, 0, 1, 2)
+        controls_layout.addWidget(self.simulate_checkbox, 11, 0, 1, 2)
+        controls_layout.addWidget(self.shutdown_label, 12, 0, 1, 2)
+        controls_layout.addWidget(self.calibrate_btn, 13, 0, 1, 2)
         
         # Set default folder here
         self.output_folder = r"C:\Users\PF-test-stand\Documents\Development\Measurements\Heater_measurements\data"
@@ -475,8 +478,9 @@ class DAQControlApp(QWidget):
             return np.array(output)
 
     def read_voltages(self):
-        thermocouple_ai2 = thermocouple_k.TypeKThermocouple(cjc_temp_C=23.0)
-        thermocouple_ai4 = thermocouple_k.TypeKThermocouple(cjc_temp_C=23.0)
+        thermocouple_ai2 = thermocouple_k.TypeKThermocouple(cjc_temp_C=-196)
+        thermocouple_ai3 = thermocouple_k.TypeKThermocouple(cjc_temp_C=-196)
+        thermocouple_ai4 = thermocouple_k.TypeKThermocouple(cjc_temp_C=-196)
         
         try:
             self.sample_nr = 0
@@ -536,8 +540,10 @@ class DAQControlApp(QWidget):
 
                         if self.thermocouple_ai2_checkbox.isChecked():
                             data[2,:] = thermocouple_ai2.mV_to_tC(data[2,:]*1000 )
+                        if self.thermocouple_ai3_checkbox.isChecked():
+                            data[3,:] = thermocouple_ai3.mV_to_tC(data[3,:]*1000)
                         if self.thermocouple_ai4_checkbox.isChecked():
-                            data[3,:] = thermocouple_ai4.mV_to_tC(data[3,:]*1000)
+                            data[4,:] = thermocouple_ai4.mV_to_tC(data[4,:]*1000)
                     except Exception as e:
                         print(f"[ERROR] DAQ read failed: {e}")
                         continue
