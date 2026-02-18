@@ -32,11 +32,11 @@ def get_terminal_name_with_dev_prefix(task: nidaqmx.Task, terminal_name: str) ->
     raise RuntimeError("Suitable device not found in task.")
 
 
-WRITE_CHANNEL = "Dev2/ao0"
-DO_CHANNEL = "Dev2/port0/line0:1"
-PROT_CHANNEL = "Dev2/ai1"
+WRITE_CHANNEL = "Dev1/ao0"
+DO_CHANNEL = "Dev1/port0/line0:1"
+PROT_CHANNEL = "Dev1/ai1"
 read_channels_factory = {
-    'Terminals': ["Dev2/ai0", "Dev2/ai1", "Dev2/ai2", "Dev2/ai3", "Dev2/ai4", "Dev2/ai5"],
+    'Terminals': ["Dev1/ai0", "Dev1/ai1", "Dev1/ai2", "Dev1/ai3", "Dev1/ai4", "Dev1/ai5"],
     'Ranges': [(-10,10), (-10,10), (-0.2,0.2), (-0.2,0.2), (-0.2,0.2), (-10,10)],
     'Config': [TerminalConfiguration.RSE, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF, TerminalConfiguration.DIFF],
 }
@@ -140,7 +140,7 @@ class DAQControlApp(QWidget):
         controls_layout.addWidget(self.calibrate_btn, 13, 0, 1, 2)
         
         # Set default folder here
-        self.output_folder = r"C:\Users\PF-test-stand\Documents\Development\Measurements\Heater_measurements\data"
+        self.output_folder = r"\data"
         Path(self.output_folder).mkdir(parents=True, exist_ok=True)
         self.folder_display.setText(f"Output Folder: {self.output_folder if len(self.output_folder)<40 else self.output_folder[-40:]}")
 
@@ -206,7 +206,7 @@ class DAQControlApp(QWidget):
         self.axs[0].set_ylabel("Current (A)")
         self.axs[0].set_xlabel("Time (s)")
 
-        nidaqmx.system.Device('Dev2').reset_device()
+        nidaqmx.system.Device('Dev1').reset_device()
 
         do_init = nidaqmx.Task()
         do_init.do_channels.add_do_chan(DO_CHANNEL, line_grouping=LineGrouping.CHAN_PER_LINE)
