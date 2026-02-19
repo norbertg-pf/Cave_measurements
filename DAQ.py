@@ -240,7 +240,7 @@ class DAQControlApp(QWidget):
         self.write_rate_input = QLineEdit("1000")
         self.read_rate_input = QLineEdit("10000")
         self.average_samples_input = QLineEdit("100")
-        self.plot_window_input = QLineEdit("10") # <--- NEW FIELD FOR PLOT TIME WINDOW
+        self.plot_window_input = QLineEdit("10")
         self.threshold_input = QLineEdit("0.0002")
         self.averaged_filename_input = QLineEdit("test")
         self.simulate_checkbox = QCheckBox("Simulate Mode")
@@ -345,7 +345,7 @@ class DAQControlApp(QWidget):
         self.add_indicator("AI1", "Frequency")
 
     def setup_config_tab(self):
-        """Builds the UI for configuring channels with scaling, units, offsets, and CJC."""
+        """Builds the UI for configuring channels with scaling, units, and offsets."""
         layout = QVBoxLayout(self.config_tab)
         
         grid = QGridLayout()
@@ -1086,6 +1086,12 @@ class DAQControlApp(QWidget):
         units["DMM"] = "V" 
         
         with self.plot_ui_lock:
+            # Determine global time window for all plots
+            if num_points > 0 and len(self.history_time) > num_points:
+                t_plot = self.history_time[-num_points:]
+            else:
+                t_plot = self.history_time
+
             for i, ax in enumerate(self.axs):
                 ax.clear()
                 
@@ -1100,12 +1106,10 @@ class DAQControlApp(QWidget):
                         unit = units.get(sig, "V")
                         plot_units.add(unit)
 
-                        # Fast List Slicing logic
+                        # Match slice length
                         if num_points > 0 and len(self.history_time) > num_points:
-                            t_plot = self.history_time[-num_points:]
                             y_plot = self.history_data[sig][-num_points:]
                         else:
-                            t_plot = self.history_time
                             y_plot = self.history_data[sig]
 
                         ax.plot(t_plot, y_plot, label=f"{sig} [{unit}]")
@@ -1118,7 +1122,15 @@ class DAQControlApp(QWidget):
                 
                 if selected_signals:
                     ax.legend(loc='upper right')
-                ax.set_xlim(left=0)
+                
+                # --- APPLY DYNAMIC X-AXIS LIMITS ---
+                if len(t_plot) > 1:
+                    ax.set_xlim(left=t_plot[0], right=t_plot[-1])
+                elif len(t_plot) == 1:
+                    ax.set_xlim(left=max(0, t_plot[0]-1), right=t_plot[0]+1)
+                else:
+                    ax.set_xlim(left=0, right=10) # default fallback
+
                 ax.grid('on')
                 
                 if i == len(self.axs) - 1:
